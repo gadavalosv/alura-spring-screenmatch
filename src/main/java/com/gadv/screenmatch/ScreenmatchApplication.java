@@ -1,6 +1,7 @@
 package com.gadv.screenmatch;
 
 import com.gadv.screenmatch.main.Main;
+import com.gadv.screenmatch.main.StreamsExample;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -20,5 +21,6 @@ public class ScreenmatchApplication implements CommandLineRunner {
 		Main main = new Main();
 		main.showMenu(scanner);
 		scanner.close();
+//		StreamsExample.showExample();
 	}
 }
