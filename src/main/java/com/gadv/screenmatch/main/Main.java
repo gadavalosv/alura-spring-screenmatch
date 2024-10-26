@@ -1,7 +1,5 @@
 package com.gadv.screenmatch.main;
 
-import com.gadv.screenmatch.model.Episode;
-import com.gadv.screenmatch.model.EpisodesData;
 import com.gadv.screenmatch.model.SeasonsData;
 import com.gadv.screenmatch.model.SeriesData;
 import com.gadv.screenmatch.service.ConsultAPI;
@@ -9,107 +7,69 @@ import com.gadv.screenmatch.service.ConvertData;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Main {
     private ConsultAPI consultAPI = new ConsultAPI();
     private final String URL_BASE = "https://www.omdbapi.com/?apikey=63b7b10&t=";
     private ConvertData convertData = new ConvertData();
+    private List<SeriesData> seriesDataList = new ArrayList<>();
     public void showMenu(Scanner scanner){
+        int optionMenu = -1;
+        while (optionMenu != 0) {
+            String menu = """
+                    1 - Buscar Series
+                    2 - Buscar Episodios
+                    3 - Mostrar Series Buscadas
+                    
+                    0 - Salir
+                    """;
+            System.out.println(menu);
+            optionMenu = scanner.nextInt();
+            scanner.nextLine();
+            switch (optionMenu) {
+                case 1:
+                    searchSeries(scanner);
+                    break;
+                case 2:
+                    searchEpisodeBySeason(scanner);
+                    break;
+                case 3:
+                    showSearchedSeries();
+                    break;
+                case 0:
+                    System.out.println("Cerrando la aplicación...");
+                    break;
+                default:
+                    System.out.println("Opción inválida");
+            }
+        }
+    }
+
+    private SeriesData getSeriesData(Scanner scanner){
         System.out.println("Por favor escribe el nombre de la Serie que deseas buscar:");
         String seriesName = scanner.nextLine();
         var json = consultAPI.getData(URL_BASE + URLEncoder.encode(seriesName, StandardCharsets.UTF_8));
-        var data = convertData.getData(json, SeriesData.class);
-        System.out.println(data);
+        return convertData.getData(json, SeriesData.class);
+    }
+
+    private void searchEpisodeBySeason(Scanner scanner) {
+        SeriesData seriesData = getSeriesData(scanner);
         List<SeasonsData> seasonsDataList = new ArrayList<>();
-        for (int i = 1; i <= data.totalSeasons(); i++) {
-            json = consultAPI.getData(URL_BASE + URLEncoder.encode(seriesName, StandardCharsets.UTF_8) + "&Season=" + i);
+        for (int i = 1; i <= seriesData.totalSeasons(); i++) {
+            String json = consultAPI.getData(URL_BASE + URLEncoder.encode(seriesData.title(), StandardCharsets.UTF_8) + "&Season=" + i);
             seasonsDataList.add(convertData.getData(json, SeasonsData.class));
         }
         seasonsDataList.forEach(System.out::println);
+    }
 
-        //Mostrar el titulo de cada episodio por temporada
-        for (int i = 0; i < data.totalSeasons(); i++) {
-            List<EpisodesData> episodesPerSeasonDataList = seasonsDataList.get(i).episodesDataList();
-            for (EpisodesData episodesData : episodesPerSeasonDataList) {
-                System.out.println(episodesData.title());
-            }
-        }
-        //Equivalente en funcion lambda
-        seasonsDataList.forEach(s -> s.episodesDataList().forEach(e -> System.out.println("Episodio: " + e.episodeNumber() + " Temporada: " + s.seasonNumber() + " Titulo: " + e.title())));
+    private void searchSeries(Scanner scanner) {
+        SeriesData seriesData = getSeriesData(scanner);
+        seriesDataList.add(seriesData);
+        System.out.println(seriesData);
+    }
 
-        //Convertir toda la informacion a una lista de EpisodesData
-        List<EpisodesData> episodesDataList = seasonsDataList.stream()
-                .flatMap(t -> t.episodesDataList().stream())
-                .collect(Collectors.toList());
-
-        //Top 5 episodios
-        System.out.println("Top 5 Episodios: ");
-        episodesDataList.stream()
-                .filter(e -> !e.rating().equalsIgnoreCase("N/A"))
-                //.peek(e -> System.out.println("Primer filtro (N/A) " + e))
-                .sorted(Comparator.comparing(EpisodesData::rating).reversed())
-                //.peek(e -> System.out.println("Segundo filtro Ordenación (M>m) " + e))
-                .limit(5)
-                //.peek(e -> System.out.println("Tercer filtro Limite (Top 5) " + e))
-                .forEach(System.out::println);
-
-        //Convirtiendo los datos a una lista de tipo Episode
-        List<Episode> episodeList = seasonsDataList.stream()
-                .flatMap(t -> t.episodesDataList().stream()
-                        .map(d -> new Episode(t.seasonNumber(), d)))
-                .collect(Collectors.toList());
-        episodeList.forEach(System.out::println);
-
-        //Busqueda de episodios a partir de x año
-        System.out.println("Por favor indica el año a partir del cual deseas ver los episodios");
-        int year = scanner.nextInt();
-        scanner.nextLine();
-        LocalDate dateToSearch = LocalDate.of(year, 1, 1);
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        episodeList.stream()
-                .filter(e -> e.getReleaseDate() != null && (e.getReleaseDate().isAfter(dateToSearch) || e.getReleaseDate().isEqual(dateToSearch)))
-                .forEach(e -> System.out.println(
-                        "Temporada: " + e.getSeasonNumber() +
-                                " Episodio: " + e.getEpisodeNumber() +
-                                " Fecha de Lanzamiento: " + e.getReleaseDate().format(dateTimeFormatter)
-                ));
-
-        //Busca episodios por fragmentos del titulo
-        System.out.println("Por favor Ingrese el titulo de episodio que desea buscar:");
-        String titleFragmentToSearch = scanner.nextLine();
-        Optional<Episode> searchedEpisode = episodeList.stream()
-                .filter(e -> e.getTitle().toUpperCase().contains(titleFragmentToSearch.toUpperCase()))
-                .findFirst();
-        if (searchedEpisode.isPresent()) {
-            System.out.println("Episodio Encontrado");
-            System.out.println("Los datos son: " + searchedEpisode.get());
-        } else {
-            System.out.println("Episodio No Encontrado");
-        }
-        Map<Integer, Double> ratingPerSeason = episodeList.stream()
-                .filter(e -> e.getRating() > 0.0)
-                .collect(Collectors.groupingBy(Episode::getSeasonNumber,
-                        Collectors.averagingDouble(Episode::getRating)));
-        System.out.println("Evaluacion por temporada: ");
-        System.out.println(ratingPerSeason);
-
-        DoubleSummaryStatistics episodeListDoubleSummaryStatistics = episodeList.stream() // NOTA: tambien se debe mencionar el equivalente para int: IntSummaryStatistics
-                .filter(e -> e.getRating() > 0.0)
-                .collect(Collectors.summarizingDouble(Episode::getRating));
-        System.out.println("Media de las evaluaciones: " + episodeListDoubleSummaryStatistics.getAverage());
-        System.out.println("Maxima evaluacion: " + episodeListDoubleSummaryStatistics.getMax());
-        System.out.println("Evaluacion minima: " + episodeListDoubleSummaryStatistics.getMin());
-        //Ejemplo IntSummaryStatistics
-//        Random r = new Random();
-//        IntSummaryStatistics intSummaryStatistics =
-//                Stream.generate(r::nextInt)
-//                        .limit(10000)
-//                        .collect(Collectors.summarizingInt(Integer::intValue));
-//        System.out.println(intSummaryStatistics);
+    private void showSearchedSeries() {
+        seriesDataList.forEach(System.out::println);
     }
 }
