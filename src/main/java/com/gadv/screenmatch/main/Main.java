@@ -1,6 +1,7 @@
 package com.gadv.screenmatch.main;
 
 import com.gadv.screenmatch.model.SeasonsData;
+import com.gadv.screenmatch.model.Serie;
 import com.gadv.screenmatch.model.SeriesData;
 import com.gadv.screenmatch.service.ConsultAPI;
 import com.gadv.screenmatch.service.ConvertData;
@@ -8,6 +9,7 @@ import com.gadv.screenmatch.service.ConvertData;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
     private ConsultAPI consultAPI = new ConsultAPI();
@@ -70,6 +72,12 @@ public class Main {
     }
 
     private void showSearchedSeries() {
-        seriesDataList.forEach(System.out::println);
+        List<Serie> seriesList = new ArrayList<>();
+        seriesList = seriesDataList.stream()
+                .map(seriesData -> new Serie(seriesData))
+                .collect(Collectors.toList());
+        seriesList.stream()
+                .sorted(Comparator.comparing(serie -> serie.getGenre(0)))
+                .forEach(System.out::println);
     }
 }

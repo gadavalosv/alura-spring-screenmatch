@@ -3,9 +3,9 @@ package com.gadv.screenmatch.model;
 public enum SmCategory {
     ACCION("Action"),
     ROMANCE("Romance"),
-    COMEDIA("Comedia"),
+    COMEDIA("Comedy"),
     DRAMA("Drama"),
-    CRIMEN("Crimen");
+    CRIMEN("Crime");
 
     private String omdbCategory;
     SmCategory (String omdbCategory){

@@ -1,12 +1,14 @@
 package com.gadv.screenmatch.model;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.OptionalDouble;
 
 public class Serie {
     private String title;
     private Integer totalSeasons;
     private Double rating;
-    private SmCategory genre;
+    private ArrayList<SmCategory> genres = new ArrayList<>();
     private String actors;
     private String posterURL;
     private String sinopsis;
@@ -15,7 +17,7 @@ public class Serie {
         this.title = seriesData.title();
         this.totalSeasons = seriesData.totalSeasons();
         this.rating = OptionalDouble.of(Double.parseDouble(seriesData.rating())).orElse(0);
-        this.genre = SmCategory.fromString(seriesData.genre().split(",")[0].trim());
+        Arrays.stream(seriesData.genre().split(", ")).forEach(genre -> this.genres.add(SmCategory.fromString(genre))); //this.genre = SmCategory.fromString(seriesData.genre().split(",")[0].trim());
         this.actors = seriesData.actors();
         this.posterURL = seriesData.posterURL();
         this.sinopsis = seriesData.sinopsis();
@@ -23,10 +25,10 @@ public class Serie {
 
     @Override
     public String toString() {
-        return "title='" + title + '\'' +
+        return "genres=" + genres +
+                ", title='" + title + '\'' +
                 ", totalSeasons=" + totalSeasons +
                 ", rating=" + rating +
-                ", genre=" + genre +
                 ", actors='" + actors + '\'' +
                 ", posterURL='" + posterURL + '\'' +
                 ", sinopsis='" + sinopsis + '\'';
@@ -56,12 +58,16 @@ public class Serie {
         this.rating = rating;
     }
 
-    public SmCategory getGenre() {
-        return genre;
+    public ArrayList<SmCategory> getGenres() {
+        return genres;
     }
 
-    public void setGenre(SmCategory genre) {
-        this.genre = genre;
+    public SmCategory getGenre(int index) {
+        return genres.get(index);
+    }
+
+    public void setGenres(ArrayList<SmCategory> genre) {
+        this.genres = genre;
     }
 
     public String getActors() {
