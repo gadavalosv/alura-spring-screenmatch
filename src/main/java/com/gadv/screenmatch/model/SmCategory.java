@@ -2,6 +2,7 @@ package com.gadv.screenmatch.model;
 
 public enum SmCategory {
     ACCION("Action"),
+    ADVENTURE("Adventure"), // extra to course
     ROMANCE("Romance"),
     COMEDIA("Comedy"),
     DRAMA("Drama"),

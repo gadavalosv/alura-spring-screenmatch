@@ -72,12 +72,11 @@ public class Main {
     }
 
     private void showSearchedSeries() {
-        List<Serie> seriesList = new ArrayList<>();
-        seriesList = seriesDataList.stream()
+        List<Serie> seriesList = seriesDataList.stream()
                 .map(seriesData -> new Serie(seriesData))
                 .collect(Collectors.toList());
         seriesList.stream()
-                .sorted(Comparator.comparing(serie -> serie.getGenre(0)))
+                .sorted(Comparator.comparing(Serie::getGenre)) //MY VERSION: .sorted(Comparator.comparing(serie -> serie.getGenre(0)))
                 .forEach(System.out::println);
     }
 }
