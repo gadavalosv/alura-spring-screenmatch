@@ -1,13 +1,24 @@
 package com.gadv.screenmatch.model;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDate;
 
+@Entity
+@Table(name="episodes")
 public class Episode {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long Id;
     private Integer seasonNumber;
     private String title;
     private Integer episodeNumber;
     private Double rating;
     private LocalDate releaseDate;
+    @ManyToOne
+    private Serie serie;
+
+    public Episode(){}
 
     public Episode(Integer seasonNumber, EpisodesData d) {
         this.seasonNumber = seasonNumber;
@@ -23,6 +34,14 @@ public class Episode {
         } catch (Exception e) {
             this.releaseDate = null;
         }
+    }
+
+    public Long getId() {
+        return Id;
+    }
+
+    public void setId(Long id) {
+        Id = id;
     }
 
     public Integer getSeasonNumber() {
@@ -63,6 +82,14 @@ public class Episode {
 
     public void setReleaseDate(LocalDate releaseDate) {
         this.releaseDate = releaseDate;
+    }
+
+    public Serie getSerie() {
+        return serie;
+    }
+
+    public void setSerie(Serie serie) {
+        this.serie = serie;
     }
 
     @Override

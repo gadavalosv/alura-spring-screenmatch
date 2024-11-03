@@ -1,16 +1,31 @@
 package com.gadv.screenmatch.model;
 
+import jakarta.persistence.*;
+
 import java.util.ArrayList;
+import java.util.List;
 import java.util.OptionalDouble;
 
+@Entity
+@Table(name="series")
 public class Serie {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long Id;
+    @Column(unique = true)
     private String title;
     private Integer totalSeasons;
     private Double rating;
+    @Enumerated(EnumType.STRING)
     private SmCategory genre; // MY VERSION: private ArrayList<SmCategory> genres = new ArrayList<>();
     private String actors;
     private String posterURL;
     private String sinopsis;
+    //@Transient Para ignorar el List<Episode> mientras no se habia configurado
+    @OneToMany(mappedBy = "serie", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Episode> episodeList;
+
+    public Serie(){}
 
     public Serie(SeriesData seriesData) {
         this.title = seriesData.title();
@@ -30,7 +45,16 @@ public class Serie {
                 ", rating=" + rating +
                 ", actors='" + actors + '\'' +
                 ", posterURL='" + posterURL + '\'' +
-                ", sinopsis='" + sinopsis + '\'';
+                ", sinopsis='" + sinopsis + '\'' +
+                ", episodios='" + episodeList + '\'';
+    }
+
+    public Long getId() {
+        return Id;
+    }
+
+    public void setId(Long id) {
+        Id = id;
     }
 
     public String getTitle() {
@@ -100,5 +124,16 @@ public class Serie {
 
     public void setSinopsis(String sinopsis) {
         this.sinopsis = sinopsis;
+    }
+
+    public List<Episode> getEpisodeList() {
+        return episodeList;
+    }
+
+    public void setEpisodeList(List<Episode> episodeList) {
+        episodeList.forEach(episode -> episode.setSerie(this)); //CODIGO SEGUN CURSO
+        this.episodeList = episodeList;
+        //CODIGO IMPROVISADO POR MI ANTES DE VER VIDEO:
+        //this.episodeList.forEach(episode -> episode.setSerie(this));//NO EJECUTAR HASTA VER VIDEO
     }
 }
